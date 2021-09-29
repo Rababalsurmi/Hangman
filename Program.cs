@@ -1,188 +1,248 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Hangman
+public class WordList : List<string>  
 {
-    class MainClass
-    {
-        public static void Main(string[] args)
+}
+public class Hangman
+{
+
+    private static WordList words;
+    private static Random rnd = new Random();
+
+    public static void Main(string[] args)
+    { 
+        Console.Title = "Hangman"; 
+        Console.WriteLine("Welcome to the Hangman Game!");                 
+        InitializeWordList();
+
+        
+        int MenuChoice = 0; 
+        while (MenuChoice != 4) 
         {
-            bool running = true;
-            int userInput;
-            int live = 10;
 
-            Console.WriteLine(" This is the Hangman Game!");
-            Console.WriteLine(" ------------------------");
-            Console.WriteLine();
-
-            string[] words = new string[10];
-            words[0] = "glass";
-            words[1] = "blomma";
-            words[2] = "dator";
-            words[3] = "hund";
-            words[4] = "bil";
-            words[5] = "utbildning";
-            words[6] = "kunskap";
-            words[7] = "sommar";
-            words[8] = "stad";
-            words[9] = "spel";
-
-            Random generate = new Random();
-            var i = generate.Next(0, 9);
-            string winningword = words[i];
-            List<string> letterGuessed = new List<string>();
-
-            Console.WriteLine("To win, you need to guess the word in swedish!");
-            Console.WriteLine();
-            Console.WriteLine("You have {0} lives...", live);
-            Console.WriteLine();
-
-
-
-            while (running)
-            {
-                Console.WriteLine("Do you want to Exit? 1 for Yes");
-                userInput = GetNumberFromUser();
-                if (userInput == 1)
-                {
-                    running = false;
-                }
-
-                while (live > 0)
-                {
-                  
-                    Console.Write("Guess for a {0} letter Word : ", winningword.Length);
-                    Isletter(winningword, letterGuessed);
-                    Console.ForegroundColor = ConsoleColor.DarkBlue;
-                    string input = Console.ReadLine();
-
-                    if (words.Contains(input))
-                    {
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine("You Entered letter [{0}] already", input);
-                        Console.ForegroundColor = ConsoleColor.DarkBlue;
-                        Console.WriteLine("Try a different word");
-                        GetAlphabet(input);
-                        continue;
-                    }
-                    letterGuessed.Add(input);
-
-                    if (IsWord(winningword, letterGuessed))
-                    {
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine(winningword);
-                        Console.WriteLine("Congratulations");
-                        break;
-                    }
-
-                    else if (winningword.Contains(input))
-                    {
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("wow nice entry");
-                        Console.ForegroundColor = ConsoleColor.DarkBlue;
-                        string letters = Isletter(winningword, letterGuessed);
-                        Console.Write(letters);
-                    }
-
-                    else
-                    {
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine("Oops, letter not in my word");
-                        live -= 1;
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine("You have {0} live", live);
-                    }
-                    Console.WriteLine();
-
-                    if (live == 0)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine("Game over \nMy Winning Word is [ {0} ]", winningword);
-                        break;
-                    }
-                }
-                Console.WriteLine("press any key to Exit");
-                Console.ReadKey();
-            }
             
+            Console.Write("\n\t1) Display the word list");
+            Console.Write("\n\t2) Play");
+            Console.Write("\n\t3) End\n\n");
+
+            Console.Write("\n\tChoose 1-3: ");       
+
+            MenuChoice = Convert.ToInt32(Console.ReadLine()); 
+                                                              
+            switch (MenuChoice)                             
+            {  
+                case 1:
+                    Console.Clear();
+                    Console.Write("\n\tWord List\n\n");
+                    foreach (string w in words) 
+                        Console.WriteLine(w);
+                    break;
+                case 2:
+                    Console.Clear();
+                    int numGuessesInt = -1; 
+                    while (numGuessesInt == -1)
+
+                    {
+                        
+                        UserpickGuesses(ref numGuessesInt);
+                    }
+
+                    string word = RandomWord();
+
+                    List<char> guessedLetters = new List<char>();
+                    bool solved = false;
+                    while (solved == false)
+                    {
+
+                        string wordToDisplay = ShowWord(guessedLetters, word);
+                       
+                        if (!wordToDisplay.Contains("_"))
+                        {
+                            solved = true;
+                            Console.ForegroundColor = ConsoleColor.DarkGreen;
+                            Console.WriteLine("Congratulations, You Won!  The word you guessed was:  " + word);
+                            Console.ForegroundColor = ConsoleColor.Black;
+                            UserReplay();
+
+                        }
+                       
+                        else if (numGuessesInt <= 0)
+                        {
+                            solved = true;
+                            Console.ForegroundColor = ConsoleColor.DarkRed;
+                            Console.WriteLine("Game Over,!The correct word was :  " + word);
+                            Console.ForegroundColor = ConsoleColor.Black;
+                            UserReplay();
+
+                        }
+                        
+                        else
+                        {
+                           
+                            LetterGuess(guessedLetters, word, wordToDisplay, ref numGuessesInt);
+                        }
+                    }
+
+                    break;
+
+                case 3: 
+                    Console.WriteLine("\n\t End\n\n");
+                    Environment.Exit(1);
+                    break;
+                default:
+                    Console.WriteLine("Error[1]: Wrong Key, Try Again!");
+                    break;
+            }
+
         }
 
-        static bool IsWord(string winningword, List<string> letterGuessed)
+    }
+
+    private static void InitializeWordList()
+    {
+        words = new WordList();
+        words.Add("dator");         
+        words.Add("gissningar");
+        words.Add("programmering");
+        words.Add("avsluta");
+        words.Add("spelare");
+        words.Add("på");
+        words.Add("över");
+        words.Add("fortsätter");
+        words.Add("utbildning");
+        words.Add("kunskap");  
+        words.Sort();                
+    }
+
+
+    private static void UserpickGuesses(ref int userNumGuessesInt)
+    {
+        userNumGuessesInt = 10;
+                                                                
+    }
+
+    private static string RandomWord()
+    {
+        return words[rnd.Next(0, words.Count() - 1)]; 
+    }
+
+    private static string ShowWord(List<char> guessedCharacters, string word)
+    {
+        string returnedWord = ""; 
+        if (guessedCharacters.Count == 0)
         {
-            bool word = false;
-            for (int i = 0; i < winningword.Length; i++)
+            foreach (char letter in word) 
             {
-                string c = Convert.ToString(winningword[i]);
-                if (letterGuessed.Contains(c))
-                {
-                    word = true;
+                returnedWord += "_ ";
+            }
+            return returnedWord; 
+        }
+        foreach (char letter in word)
+        {
+            bool letterMatch = false;
+            foreach (char character in guessedCharacters)
+            {
+                if (character == letter) 
+                {  
+                    returnedWord += character + " ";
+                    letterMatch = true;
+                    break;
                 }
                 else
                 {
-                    return word = false;
+                    letterMatch = false; 
                 }
             }
-            return word;
+            if (letterMatch == false) 
+            {
+                returnedWord += "_ ";
+            }
         }
+        return returnedWord;
+    }
 
-        static string Isletter(string winningword, List<string> letterGuessed)
+
+    static void LetterGuess(List<char> guessedCharacters, string word, string wordToDisplay, ref int numGuessesLeft)
+    {
+        string letters = "";
+        foreach (char letter in guessedCharacters)
         {
-            string correctletters = "";
-            for (int i = 0; i < winningword.Length; i++)
-            {
-                string c = Convert.ToString(winningword[i]);
-
-                if (letterGuessed.Contains(c))
-                {
-                    correctletters += c;
-                }
-                else
-                {
-                    correctletters += "_ ";
-                }
-            }
-            return correctletters;
+            letters += " " + letter;
         }
 
-        static void GetAlphabet(string letters)
+        Console.ForegroundColor = ConsoleColor.Black;
+        Console.WriteLine("Guess for a letter between A-Ö");
+        Console.ForegroundColor = ConsoleColor.Black;
+        Console.Write("The Swedish word consists of {0} letters Word: ", word.Length);
+        Console.WriteLine(wordToDisplay);
+        Console.ForegroundColor = ConsoleColor.Black;
+        Console.WriteLine("Used Letters: " + letters);
+        Console.ForegroundColor = ConsoleColor.Magenta;
+        Console.WriteLine("You have {0} lives" , numGuessesLeft);
+
+        Console.ForegroundColor = ConsoleColor.DarkBlue;
+        string guess = Console.ReadLine();
+        char guessedLetter = 'a';
+
+
+        if (guess.Length > 1 && guess == word)
         {
-            List<string> alphabet = new List<string>();
+             word = RandomWord();
+            Console.ForegroundColor = ConsoleColor.DarkGreen;
+            Console.WriteLine(guess == word ? string.Format("Congratulations, You Won! The correct word was {0}", word) : string.Format("You Lost! The correct word was '{0}'", word));
 
-            for (int i = 1; i <= 26; i++)
-            {
-                char alpha = Convert.ToChar(i + 96);
-                alphabet.Add(Convert.ToString(alpha));
-            }
-            int num = 49;
-            Console.ForegroundColor = ConsoleColor.Magenta;
-            Console.WriteLine("Letters Left are :");
+            Console.WriteLine("\n\tPress any key to Exit\n\n");
+            Console.ReadKey();
+            Environment.Exit(1);
 
-            for (int i = 0; i < num; i++)
-            {
-                if (letters.Contains(letters))
-                {
-                    alphabet.Remove(letters);
-                    num -= 1;
-                }
-                Console.Write("[" + alphabet[i] + "] ");
-            }
-
-            Console.WriteLine();
         }
-
-
-        static int GetNumberFromUser()
+        else
         {
-            int userInput = 0;
-            bool succeeded = false;
-            while (!succeeded)
+            try
             {
-                succeeded = int.TryParse(Console.ReadLine(), out userInput);
+                guessedLetter = Convert.ToChar(guess);
+                if (!char.IsLetter(guessedLetter))
+                {
+                    throw new Exception();
+                }
             }
-            return userInput;
+            catch (Exception)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Error[3]: Enter one LETTER or guess the WORD!");
+
+            }
+
+            bool repeat = false;
+            for (int i = 0; i < guessedCharacters.Count; i++)
+            {
+                if (guessedCharacters[i] == guessedLetter)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Error[4]: You Entered this letter already, try another");
+                    repeat = true;
+                }
+            }
+            if (repeat == false)
+            {
+                guessedCharacters.Add(guessedLetter);
+                numGuessesLeft -= 1;
+            }
         }
+    
+
+    }
+
+    static void UserReplay()
+    {
+        Console.WriteLine("Do you want to play again? (Y/N)");
+        string playAgain = Console.ReadLine();
+        if (playAgain == "n")
+        {
+            Environment.Exit(1);
+        }
+        Console.Clear();
+
     }
 }
